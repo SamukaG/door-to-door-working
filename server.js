@@ -18,23 +18,21 @@ app.use(express.json());
 // Rota pública para obter endereços
 app.get('/public/addresses', async (req, res) => {
     try {
-        const { city, min_flats } = req.query;
-        
-        let query = supabase
+        const { data, error } = await supabase
             .from('addresses')
-            .select(`
-                id,
-                street,
-                house_number,
-                city,
-                postcode,
-                lat,
-                lng,
-                flats,
-                levels,
-                created_at
-            `)
+            .select('id, street, house_number, city, postcode, lat, lng, flats, levels')
             .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        console.log(`Retornando ${data.length} endereços`); // Log para debug
+        res.json(data);
+        
+    } catch (error) {
+        console.error('Erro na API:', error);
+        res.status(500).json({ error: 'Erro interno' });
+    }
+});
 
         // Aplicar filtros
         if (city) query = query.eq('city', city);
